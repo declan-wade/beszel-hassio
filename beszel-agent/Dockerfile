@@ -2,6 +2,8 @@ ARG BUILD_FROM=ghcr.io/hassio-addons/base:21.0.9
 # hadolint ignore=DL3006
 FROM ${BUILD_FROM}
 
+ARG BESZEL_VERSION=0.21.1
+ARG TARGETARCH
 ARG BUILD_ARCH
 ARG BUILD_DATE
 ARG BUILD_DESCRIPTION
@@ -19,18 +21,15 @@ RUN apk add --no-cache \
 WORKDIR /usr/local/bin
 
 RUN set -eux; \
-    case "${BUILD_ARCH}" in \
+    ARCH="${TARGETARCH:-${BUILD_ARCH}}"; \
+    case "${ARCH}" in \
         aarch64|arm64) ARCH="arm64" ;; \
         amd64) ARCH="amd64" ;; \
-        armv7) ARCH="armv7" ;; \
-        armhf) ARCH="armv7" ;; \
-        *) echo "Unsupported architecture: ${BUILD_ARCH}" >&2; exit 1 ;; \
+        *) echo "Unsupported architecture: ${ARCH}" >&2; exit 1 ;; \
     esac; \
-    for url in \
-        "https://github.com/henrygd/beszel/releases/latest/download/beszel-agent_linux_${ARCH}.tar.gz" \
-        "https://github.com/henrygd/beszel/releases/latest/download/beszel-agent_linux_${ARCH}_glibc.tar.gz"; do \
-        if curl -fsSL "$url" -o /tmp/beszel-agent.tar.gz; then break; fi; \
-    done; \
+    curl -fsSL \
+        "https://github.com/henrygd/beszel/releases/download/v${BESZEL_VERSION}/beszel-agent_linux_${ARCH}.tar.gz" \
+        -o /tmp/beszel-agent.tar.gz; \
     tar -xzf /tmp/beszel-agent.tar.gz -C /usr/local/bin; \
     chmod +x /usr/local/bin/beszel-agent; \
     rm -f /tmp/beszel-agent.tar.gz
@@ -42,7 +41,6 @@ RUN chmod +x /usr/local/bin/start-beszel-agent.sh
 LABEL \
     io.hass.name="${BUILD_NAME}" \
     io.hass.description="${BUILD_DESCRIPTION}" \
-    io.hass.arch="${BUILD_ARCH}" \
     io.hass.type="addon" \
     io.hass.version="${BUILD_VERSION}" \
     maintainer="Your Name <you@example.com>" \

@@ -6,8 +6,8 @@ on:
   push:
     branches:
       - main
-    tags:
-      - "v*"
+    paths:
+      - "beszel-agent/**"
   workflow_dispatch:
 
 permissions:
@@ -22,6 +22,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Read app version and image
+        id: app
+        run: |
+          echo "version=$(yq -r '.version' beszel-agent/config.yaml)" >> "$GITHUB_OUTPUT"
+          echo "image=$(yq -r '.image' beszel-agent/config.yaml)" >> "$GITHUB_OUTPUT"
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
@@ -35,31 +41,24 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract Docker metadata
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ghcr.io/${{ github.repository_owner }}/beszel-agent
-          tags: |
-            type=raw,value=latest,enable={{is_default_branch}}
-            type=ref,event=branch
-            type=ref,event=tag
-            type=sha
-
       - name: Build and push image
         uses: docker/build-push-action@v6
         with:
           context: ./beszel-agent
           file: ./beszel-agent/Dockerfile
-          platforms: linux/amd64
+          platforms: linux/amd64,linux/arm64
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: |
+            ${{ steps.app.outputs.image }}:${{ steps.app.outputs.version }}
+            ${{ steps.app.outputs.image }}:latest
+          labels: |
+            io.hass.type=addon
+            io.hass.version=${{ steps.app.outputs.version }}
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
           build-args: |
-            BUILD_ARCH=amd64
             BUILD_NAME=Beszel Agent
             BUILD_DESCRIPTION=Unofficial Home Assistant app for Beszel agent
             BUILD_REPOSITORY=${{ github.repository }}
-            BUILD_VERSION=${{ github.ref_name || 'dev' }}
-            BUILD_DATE=${{ github.run_started_at }}
+            BUILD_VERSION=${{ steps.app.outputs.version }}
+            BUILD_DATE=${{ github.event.head_commit.timestamp }}
             BUILD_REF=${{ github.sha }}

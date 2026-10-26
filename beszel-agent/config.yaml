@@ -1,7 +1,8 @@
 ---
 name: Beszel Agent
-version: dev
+version: "0.21.1"
 slug: beszel_agent
+image: ghcr.io/declan-wade/beszel-agent
 description: Unofficial Home Assistant app for the Beszel monitoring agent
 url: https://github.com/declan-wade/beszel-hassio
 init: false
