@@ -6,27 +6,60 @@ on:
   push:
     branches:
       - main
-  release:
-    types:
-      - published
+    tags:
+      - "v*"
   workflow_dispatch:
 
-permissions: {}
+permissions:
+  contents: read
+  packages: write
 
 jobs:
-  ci:
-    permissions:
-      actions: read
-      contents: read
-      packages: read
-      security-events: write
-    uses: hassio-addons/workflows/.github/workflows/app-ci.yaml@adec4b96071354cc44924a6ef9975ff60cf9ddd9 # yamllint disable-line rule:line-length
+  build-and-push:
+    runs-on: ubuntu-latest
 
-  deploy:
-    needs: ci
-    permissions:
-      contents: read
-      packages: write
-    uses: hassio-addons/workflows/.github/workflows/app-deploy.yaml@adec4b96071354cc44924a6ef9975ff60cf9ddd9 # yamllint disable-line rule:line-length
-    secrets:
-      DISPATCH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/beszel-agent
+          tags: |
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=ref,event=branch
+            type=ref,event=tag
+            type=sha
+
+      - name: Build and push image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./beszel-agent
+          file: ./beszel-agent/Dockerfile
+          platforms: linux/amd64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            BUILD_ARCH=amd64
+            BUILD_NAME=Beszel Agent
+            BUILD_DESCRIPTION=Unofficial Home Assistant app for Beszel agent
+            BUILD_REPOSITORY=${{ github.repository }}
+            BUILD_VERSION=${{ github.ref_name || 'dev' }}
+            BUILD_DATE=${{ github.run_started_at }}
+            BUILD_REF=${{ github.sha }}
