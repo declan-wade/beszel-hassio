@@ -1,18 +1,15 @@
 ---
 name: Beszel Agent
-version: "0.21.1"
+version: dev
 slug: beszel_agent
 description: Unofficial Home Assistant app for the Beszel monitoring agent
-url: https://github.com/your-user/beszel-hassio
+url: https://github.com/declan-wade/beszel-hassio
 init: false
 arch:
   - aarch64
   - amd64
-  - armv7
-  - armhf
 host_network: true
 privileged: true
-full_access: true
 options:
   hub_url: "http://homeassistant.local:8090"
   token: ""

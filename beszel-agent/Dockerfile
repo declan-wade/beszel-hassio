@@ -10,6 +10,7 @@ ARG BUILD_REF
 ARG BUILD_REPOSITORY
 ARG BUILD_VERSION
 
+# hadolint ignore=DL3018
 RUN apk add --no-cache \
     bash \
     ca-certificates \
