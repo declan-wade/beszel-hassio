@@ -25,4 +25,21 @@ if [ -z "${LISTEN:-}" ]; then
     export LISTEN="45876"
 fi
 
+# Supervisor mounts the Docker socket only when docker_api is enabled
+# and protection mode is disabled for this app.
+if [ -z "${DOCKER_HOST:-}" ]; then
+    for sock in /run/docker.sock /var/run/docker.sock; do
+        if [ -S "$sock" ]; then
+            export DOCKER_HOST="unix://${sock}"
+            break
+        fi
+    done
+fi
+
+if [ -z "${DOCKER_HOST:-}" ]; then
+    bashio::log.warning "Docker socket not found. Disable 'Protection mode' for this app to enable container stats."
+else
+    bashio::log.info "Using Docker socket at ${DOCKER_HOST}"
+fi
+
 exec /usr/local/bin/beszel-agent

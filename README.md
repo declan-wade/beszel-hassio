@@ -26,6 +26,7 @@ Beszel ships a native agent binary and a Docker image named `henrygd/beszel-agen
    - `token` — the Beszel agent token
    - `key` — the Beszel public key
    - `listen` — the port or bind address the agent should listen on, usually `45876`
+5. To collect Docker container stats, turn off **Protection mode** on the app's Info tab and restart it. Home Assistant only mounts the Docker socket (`docker_api`) for apps with protection mode disabled.
 
 ## Notes
 

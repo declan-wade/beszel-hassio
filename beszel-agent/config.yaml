@@ -9,6 +9,7 @@ arch:
   - aarch64
   - amd64
 host_network: true
+docker_api: true
 privileged:
   - NET_ADMIN
 options:
