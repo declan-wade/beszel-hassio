@@ -1,0 +1,6 @@
+#!/command/with-contenv bashio
+# shellcheck shell=bash
+
+bashio::log.info "Starting Beszel agent..."
+
+exec /usr/local/bin/start-beszel-agent.sh

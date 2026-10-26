@@ -1,0 +1,3 @@
+#!/usr/bin/execlineb -S1
+with-contenv
+exec /usr/local/bin/start-beszel-agent.sh
