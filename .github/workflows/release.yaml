@@ -8,6 +8,9 @@ on:
       - main
     paths:
       - "beszel-agent/**"
+  release:
+    types:
+      - published
   workflow_dispatch:
 
 permissions:
