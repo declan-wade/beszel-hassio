@@ -29,4 +29,4 @@ jobs:
       packages: write
     uses: hassio-addons/workflows/.github/workflows/app-deploy.yaml@adec4b96071354cc44924a6ef9975ff60cf9ddd9 # yamllint disable-line rule:line-length
     secrets:
-      DISPATCH_TOKEN: ${{ secrets.DISPATCH_TOKEN }}
+      DISPATCH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
